@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Monitoring App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: skyblue;
+            color: white;
+            font-family: 'Comfortaa';
+        }
+
+        button {
+            background-color: skyblue;
+            border: none;
+            font-size: 50px;
+        }
+
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px black;
+        }
+
+        #button {
+            padding: 10px 20px;
+            background-color: white;
+            text-align: center;
+            border-radius: 10px;
+            margin: 20px;
+            font-size: 20px;
+            color: skyblue;
+            box-shadow: 0px 0px 10px black;
+        }
+
+        #div {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 40px;
+        }
+        .div{
+            background-color: white;
+            color: skyblue;
+            padding: 13px 0px;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <center>
+        <div class="div">
+            <h1>Baby Monitoring App</h1>
+        </div>
+        <div id="div"><button id="button">Status: None</button></div>
+        <audio src="beep-06.mp3" id="audio"></audio>
+    </center>
+    <script>
+        img = '';
+        objects = [];
+        statusX = '';
+        function setup() {
+            canvas = createCanvas(700, 500);
+            canvas.position(369.5, 250);
+            video = createCapture(VIDEO);
+            video.size(700, 500);
+            video.hide();
+            document.getElementById('button').innerHTML = 'Status: Detecting...';
+            objectDetector = ml5.objectDetector('cocossd', loaded);
+        }
+        function loaded() {
+            console.log('loaded');
+            statusX = true;
+        }
+        function gotResults(error, results) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log(results);
+                objects = results;
+            }
+        }
+        function draw() {
+            image(video, 0, 0, 700, 500);
+            if (statusX != '') {
+                objectDetector.detect(video, gotResults);
+                for (i = 0; i < objects.length; i++) {
+                    document.getElementById('button').innerHTML = 'Status: Detected';
+                    percent = floor(objects[i].confidence * 100);
+                    fill(0, 0, 0);
+                    x = objects[i].label;
+                    y = x.toUpperCase();
+                    text(y + ' ' + percent + '%', objects[i].x, objects[i].y);
+                    noFill();
+                    stroke(0, 0, 0);
+                    rect(objects[i].x, objects[i].y, objects[i].width, objects[i].height);
+                    if(objects[i].label != 'person'){
+                        document.getElementById('audio').play();
+                    } else {
+                        document.getElementById('audio').stop();
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
